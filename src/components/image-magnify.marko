@@ -1,0 +1,246 @@
+<div>
+  <div.image--container
+    tabindex="0"
+    key="imageContainer"
+    on-mouseover("mouseEvent")
+    on-mousemove("mouseEvent")
+    on-keydown("keyDown")
+  >
+    <div.imagezoom--lens
+      tabindex="0"
+      role="group"
+      aria-roledescription="image zoom"
+      key="lens"
+    >
+      <div.arrow--container>
+        <span.arrow.arrow--right/>
+        <span.arrow.arrow--down/>
+        <span.arrow.arrow--left/>
+        <span.arrow.arrow--up/>
+      </div>
+    </div>
+    <img#image
+      src="https://i.ebayimg.com/images/g/Rj8AAOSwmRNj2Y1~/s-l500.jpg"
+      width="300"
+      height="240"
+      alt="side view of a reebok brand shoe"
+      key="image"
+    >
+  </div>
+  <div.imagezoom--result#result key="result"/>
+</div>
+class {
+  onCreate() {
+    this.state = { x: 0, y: 0 };
+  }
+  onMount() {
+    this.imgContainer = this.getEl("imageContainer");
+    this.lens = this.getEl("lens");
+    this.img = this.getEl("image");
+    this.result = this.getEl("result");
+    this.keyDown = this.keyDown.bind(this);
+    this.mouseEvent = this.mouseEvent.bind(this);
+    this._getCursorPosition = this._getCursorPosition.bind(this);
+    this._moveLens = this._moveLens.bind(this);
+
+    const { imgContainer, lens, img, result } = this;
+
+    /* Calculate the ratio between result DIV and lens: */
+    const cx = result.offsetWidth / lens.offsetWidth;
+    const cy = result.offsetHeight / lens.offsetHeight;
+    this.cx = cx;
+    this.cy = cy;
+
+    /* Set background properties for the result DIV */
+    result.style.backgroundImage = "url('" + img.src + "')";
+    result.style.backgroundSize =
+      img.width * cx + "px " + img.height * cy + "px";
+
+    // const onFocusEvent = (e) => {
+    //   console.log("focus enter");
+    //   /* Add keyboard support: */
+    //   lens.addEventListener("keydown", this.keyDown);
+    //   /* Execute a function when someone moves the cursor over the image, or the lens: */
+    //   lens.addEventListener("mousemove", this.mouseEvent);
+    //   img.addEventListener("mousemove", this.mouseEvent);
+
+    //   /* And also for touch screens: */
+    //   lens.addEventListener("touchmove", this.mouseEvent);
+    //   img.addEventListener("touchmove", this.mouseEvent);
+    // };
+
+    // const onFocusExit = (e) => {
+    //   console.log("focus exit");
+    //   lens.removeEventListener("mousemove", this.mouseEvent);
+    //   img.removeEventListener("mousemove", this.mouseEvent);
+
+    //   /* And also for touch screens: */
+    //   lens.addEventListener("touchmove", this.mouseEvent);
+    //   img.removeEventListener("touchmove", this.mouseEvent);
+
+    //   /* Add keyboard support: */
+    //   lens.removeEventListener("keydown", this.keyDown);
+    // };
+
+    // imgContainer.addEventListener("focus", onFocusEvent, true);
+    // imgContainer.addEventListener("blur", onFocusExit, true);
+  }
+
+  mouseEvent(e) {
+    const { lens } = this;
+    let x, y;
+    /* Prevent any other actions that may occur when moving over the image */
+    e.preventDefault();
+
+    /* Get the cursor's x and y positions: */
+    const curPosition = this._getCursorPosition(e);
+    /* Calculate the position of the lens: */
+    x = curPosition.x - lens.offsetWidth / 2;
+    y = curPosition.y - lens.offsetHeight / 2;
+
+    this._moveLens(x, y);
+  }
+
+  keyDown(e) {
+    const { lens } = this;
+    const MOVE_PX_DEFAULT = 25;
+    console.log(e.keyCode)
+
+    // changing the behaviour of arrow keys
+    if (e.keyCode >= 37 && e.keyCode <= 40) {
+      e.preventDefault();
+      let left = parseInt(lens.style.left) || 0;
+      let top = parseInt(lens.style.top) || 0;
+      // console.log(lens.style.left, lens.style.top);
+      switch (e.keyCode) {
+        case 37: //left arrow key
+          if (left > 0) left = left - MOVE_PX_DEFAULT;
+          break;
+        case 38: //Up arrow key
+          if (top > 0) top = top - MOVE_PX_DEFAULT;
+          break;
+        case 39: //right arrow key
+          if (left < 2600) left = left + MOVE_PX_DEFAULT;
+          break;
+        case 40: //down arrow key
+          if (top < 2000) top = top + MOVE_PX_DEFAULT;
+          break;
+      }
+     
+      this._moveLens(left, top);
+    }
+  }
+
+  _getCursorPosition(e) {
+    const { img } = this;
+    let a,
+      x = 0,
+      y = 0;
+    e = e || window.event;
+    /* Get the x and y positions of the image: */
+    a = img.getBoundingClientRect();
+    /* Calculate the cursor's x and y coordinates, relative to the image: */
+    x = e.pageX - a.left;
+    y = e.pageY - a.top;
+    /* Consider any page scrolling: */
+    x = x - window.pageXOffset;
+    y = y - window.pageYOffset;
+    return { x, y };
+  }
+
+  /* Move the lens in x and y coordinates */
+  _moveLens(x, y) {
+    const { img, lens, result, cx, cy } = this;
+    /* Prevent the lens from being positioned outside the image: */
+    if (x > img.width - lens.offsetWidth) {
+      x = img.width - lens.offsetWidth;
+    }
+    if (x < 0) {
+      x = 0;
+    }
+    if (y > img.height - lens.offsetHeight) {
+      y = img.height - lens.offsetHeight;
+    }
+    if (y < 0) {
+      y = 0;
+    }
+     console.log(x, y);
+    /* Set the position of the lens: */
+    lens.style.left = x + "px";
+    lens.style.top = y + "px";
+    /* Display what the lens "sees": */
+    result.style.backgroundPosition = "-" + x * cx + "px -" + y * cy + "px";
+  }
+  move(e) {
+    this.state.x = e.clientX;
+    this.state.y = e.clientY;
+  }
+}
+style {
+  * {
+    box-sizing: border-box;
+  }
+
+  .image--container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .imagezoom--lens {
+    position: absolute;
+    visibility: hidden;
+    border: 1px solid #d4d4d4;
+    width: 100px;
+    height: 100px;
+    cursor: crosshair;
+  }
+
+  .image--container:hover .imagezoom--lens {
+    visibility: inherit;
+  }
+
+  .imagezoom--result {
+    border: 1px solid #d4d4d4;
+    width: 300px;
+    height: 300px;
+  }
+
+  .arrow--container {
+    position: relative;
+  }
+  .arrow {
+    position: absolute;
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+  }
+
+  .arrow--right {
+    top: 45px;
+    right: 15px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+  }
+
+  .arrow--left {
+    top: 45px;
+    left: 15px;
+    transform: rotate(135deg);
+    -webkit-transform: rotate(135deg);
+  }
+
+  .arrow--up {
+    top: 15px;
+    left: 45px;
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+  }
+
+  .arrow--down {
+    top: 75px;
+    left: 45px;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+  }
+}
