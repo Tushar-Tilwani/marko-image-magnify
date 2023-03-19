@@ -1,4 +1,4 @@
-<div>
+<div.image-magnify>
   <div.image--container
     tabindex="0"
     key="imageContainer"
@@ -144,8 +144,8 @@ class {
   }
 }
 style {
-  * {
-    box-sizing: border-box;
+  .image-magnify {
+    display: flex;
   }
 
   .image--container {
@@ -155,21 +155,33 @@ style {
 
   .imagezoom--lens {
     position: absolute;
-    visibility: hidden;
+    opacity: 0;
     border: 1px solid #d4d4d4;
     width: 100px;
     height: 100px;
     cursor: crosshair;
+    transition: opacity 0.2s ease-in 0s;
   }
 
-  .image--container:hover .imagezoom--lens {
-    visibility: inherit;
+  .imagezoom--lens,
+  .imagezoom--result {
+    transition: opacity 0.2s ease-in 0s;
+  }
+  .image--container:hover .imagezoom--lens,
+  .image--container:hover + .imagezoom--result {
+    opacity: 1;
+    transition-duration: 0.3s;
   }
 
   .imagezoom--result {
+    position: absolute;
     border: 1px solid #d4d4d4;
     width: 300px;
     height: 300px;
+    left: 300px;
+    opacity: 0;
+
+    z-index: 999;
   }
 
   .arrow--container {
