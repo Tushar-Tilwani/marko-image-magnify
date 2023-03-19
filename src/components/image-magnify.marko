@@ -1,3 +1,10 @@
+$ {
+  const {
+    pos: { x, y },
+    ratio: { cx, cy },
+  } = state;
+}
+
 <div.image-magnify>
   <div.image--container
     tabindex="0"
@@ -11,6 +18,7 @@
       role="group"
       aria-roledescription="image zoom"
       key="lens"
+      style={ left: `${x}px`, top: `${y}px` }
     >
       <div.arrow--container>
         <span.arrow.arrow--right/>
@@ -27,34 +35,31 @@
       key="image"
     >
   </div>
-  <div.imagezoom--result#result key="result"/>
+  <div.imagezoom--result#result
+    key="result"
+    style={
+      backgroundImage: `url("https://i.ebayimg.com/images/g/Rj8AAOSwmRNj2Y1~/s-l500.jpg")`,
+      backgroundPosition: `-${x * cx}px -${y * cy}px`,
+      backgroundSize: `${300 * cx}px ${240 * cy}px`,
+    }
+  />
 </div>
 class {
   onCreate() {
-    this.state = { x: 0, y: 0 };
+    this.state = { pos: { x: 0, y: 0 }, ratio: { cx: 1, cy: 1 } };
   }
   onMount() {
     this.imgContainer = this.getEl("imageContainer");
     this.lens = this.getEl("lens");
     this.img = this.getEl("image");
     this.result = this.getEl("result");
-    this.keyDown = this.keyDown.bind(this);
-    this.mouseEvent = this.mouseEvent.bind(this);
     this._getCursorPosition = this._getCursorPosition.bind(this);
     this._moveLens = this._moveLens.bind(this);
-
-    const { imgContainer, lens, img, result } = this;
-
-    /* Calculate the ratio between result DIV and lens: */
-    const cx = result.offsetWidth / lens.offsetWidth;
-    const cy = result.offsetHeight / lens.offsetHeight;
-    this.cx = cx;
-    this.cy = cy;
-
-    /* Set background properties for the result DIV */
-    result.style.backgroundImage = "url('" + img.src + "')";
-    result.style.backgroundSize =
-      img.width * cx + "px " + img.height * cy + "px";
+    const { lens, result } = this;
+    this.state.ratio = {
+      cx: result.offsetWidth / lens.offsetWidth,
+      cy: result.offsetHeight / lens.offsetHeight,
+    };
   }
 
   mouseEvent(e) {
@@ -67,37 +72,33 @@ class {
     /* Prevent any other actions that may occur when moving over the image */
     e.preventDefault();
     lens.focus();
-
-    this._moveLens(x, y, "mouse");
+    this._moveLens(x, y);
   }
 
   keyDown(e) {
-    const { lens } = this;
-    const MOVE_PX_DEFAULT = 25;
-
-    // changing the behaviour of arrow keys
-    if (e.keyCode >= 37 && e.keyCode <= 40) {
-      e.preventDefault();
-      let left = parseInt(lens.style.left) || 0;
-      let top = parseInt(lens.style.top) || 0;
-      // console.log(lens.style.left, lens.style.top);
-      switch (e.keyCode) {
-        case 37: //left arrow key
-          left = left - MOVE_PX_DEFAULT;
-          break;
-        case 38: //Up arrow key
-          top = top - MOVE_PX_DEFAULT;
-          break;
-        case 39: //right arrow key
-          left = left + MOVE_PX_DEFAULT;
-          break;
-        case 40: //down arrow key
-          top = top + MOVE_PX_DEFAULT;
-          break;
-      }
-
-      this._moveLens(left, top, "key");
+    if (!(e.keyCode >= 37 && e.keyCode <= 40)) {
+      return true;
     }
+    const MOVE_PX_DEFAULT = 25;
+    const { lens } = this;
+    let { x: left, y: top } = this.state.pos;
+    switch (e.keyCode) {
+      case 37: //left arrow key
+        left = left - MOVE_PX_DEFAULT;
+        break;
+      case 38: //Up arrow key
+        top = top - MOVE_PX_DEFAULT;
+        break;
+      case 39: //right arrow key
+        left = left + MOVE_PX_DEFAULT;
+        break;
+      case 40: //down arrow key
+        top = top + MOVE_PX_DEFAULT;
+        break;
+    }
+
+    this._moveLens(left, top);
+    e.preventDefault();
   }
 
   _getCursorPosition(e = window.event) {
@@ -133,24 +134,23 @@ class {
     }
 
     /* Set the position of the lens: */
-    lens.style.left = x + "px";
-    lens.style.top = y + "px";
+    // lens.style.left = x + "px";
+    // lens.style.top = y + "px";
+    this.state.pos = { x, y };
     /* Display what the lens "sees": */
-    result.style.backgroundPosition = "-" + x * cx + "px -" + y * cy + "px";
-  }
-  move(e) {
-    this.state.x = e.clientX;
-    this.state.y = e.clientY;
+    // result.style.backgroundPosition = `-${x * cx}px -${y * cy}px`;
   }
 }
 style {
   .image-magnify {
     display: flex;
+    overflow: visible;
   }
 
   .image--container {
     position: relative;
     display: inline-block;
+    overflow: hidden;
   }
 
   .imagezoom--lens {
