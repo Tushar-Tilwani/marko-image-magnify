@@ -2,7 +2,7 @@
   <div.image--container
     tabindex="0"
     key="imageContainer"
-    on-mouseover("mouseEvent")
+    on-mouseenter("mouseEvent")
     on-mousemove("mouseEvent")
     on-keydown("keyDown")
   >
@@ -55,56 +55,25 @@ class {
     result.style.backgroundImage = "url('" + img.src + "')";
     result.style.backgroundSize =
       img.width * cx + "px " + img.height * cy + "px";
-
-    // const onFocusEvent = (e) => {
-    //   console.log("focus enter");
-    //   /* Add keyboard support: */
-    //   lens.addEventListener("keydown", this.keyDown);
-    //   /* Execute a function when someone moves the cursor over the image, or the lens: */
-    //   lens.addEventListener("mousemove", this.mouseEvent);
-    //   img.addEventListener("mousemove", this.mouseEvent);
-
-    //   /* And also for touch screens: */
-    //   lens.addEventListener("touchmove", this.mouseEvent);
-    //   img.addEventListener("touchmove", this.mouseEvent);
-    // };
-
-    // const onFocusExit = (e) => {
-    //   console.log("focus exit");
-    //   lens.removeEventListener("mousemove", this.mouseEvent);
-    //   img.removeEventListener("mousemove", this.mouseEvent);
-
-    //   /* And also for touch screens: */
-    //   lens.addEventListener("touchmove", this.mouseEvent);
-    //   img.removeEventListener("touchmove", this.mouseEvent);
-
-    //   /* Add keyboard support: */
-    //   lens.removeEventListener("keydown", this.keyDown);
-    // };
-
-    // imgContainer.addEventListener("focus", onFocusEvent, true);
-    // imgContainer.addEventListener("blur", onFocusExit, true);
   }
 
   mouseEvent(e) {
     const { lens } = this;
-    let x, y;
-    /* Prevent any other actions that may occur when moving over the image */
-    e.preventDefault();
-
     /* Get the cursor's x and y positions: */
     const curPosition = this._getCursorPosition(e);
     /* Calculate the position of the lens: */
-    x = curPosition.x - lens.offsetWidth / 2;
-    y = curPosition.y - lens.offsetHeight / 2;
+    const x = curPosition.x - lens.offsetWidth / 2;
+    const y = curPosition.y - lens.offsetHeight / 2;
+    /* Prevent any other actions that may occur when moving over the image */
+    e.preventDefault();
+    lens.focus();
 
-    this._moveLens(x, y);
+    this._moveLens(x, y, "mouse");
   }
 
   keyDown(e) {
     const { lens } = this;
     const MOVE_PX_DEFAULT = 25;
-    console.log(e.keyCode)
 
     // changing the behaviour of arrow keys
     if (e.keyCode >= 37 && e.keyCode <= 40) {
@@ -114,31 +83,29 @@ class {
       // console.log(lens.style.left, lens.style.top);
       switch (e.keyCode) {
         case 37: //left arrow key
-          if (left > 0) left = left - MOVE_PX_DEFAULT;
+          left = left - MOVE_PX_DEFAULT;
           break;
         case 38: //Up arrow key
-          if (top > 0) top = top - MOVE_PX_DEFAULT;
+          top = top - MOVE_PX_DEFAULT;
           break;
         case 39: //right arrow key
-          if (left < 2600) left = left + MOVE_PX_DEFAULT;
+          left = left + MOVE_PX_DEFAULT;
           break;
         case 40: //down arrow key
-          if (top < 2000) top = top + MOVE_PX_DEFAULT;
+          top = top + MOVE_PX_DEFAULT;
           break;
       }
-     
-      this._moveLens(left, top);
+
+      this._moveLens(left, top, "key");
     }
   }
 
-  _getCursorPosition(e) {
+  _getCursorPosition(e = window.event) {
     const { img } = this;
-    let a,
-      x = 0,
-      y = 0;
-    e = e || window.event;
+    let x = 0;
+    let y = 0;
     /* Get the x and y positions of the image: */
-    a = img.getBoundingClientRect();
+    const a = img.getBoundingClientRect();
     /* Calculate the cursor's x and y coordinates, relative to the image: */
     x = e.pageX - a.left;
     y = e.pageY - a.top;
@@ -164,7 +131,7 @@ class {
     if (y < 0) {
       y = 0;
     }
-     console.log(x, y);
+
     /* Set the position of the lens: */
     lens.style.left = x + "px";
     lens.style.top = y + "px";
