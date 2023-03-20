@@ -55,10 +55,14 @@ class {
     this.result = this.getEl("result");
     this._getCursorPosition = this._getCursorPosition.bind(this);
     this._moveLens = this._moveLens.bind(this);
-    const { lens, result } = this;
+    const { lens, result, img } = this;
     this.state.ratio = {
       cx: result.offsetWidth / lens.offsetWidth,
       cy: result.offsetHeight / lens.offsetHeight,
+    };
+    this.max = {
+      x: img.width - lens.offsetWidth,
+      y: img.height - lens.offsetHeight,
     };
   }
 
@@ -101,34 +105,36 @@ class {
     e.preventDefault();
   }
 
-  _getCursorPosition(e = window.event) {
-    const { img } = this;
-    let x = 0;
-    let y = 0;
+  _getCursorPosition(e) {
     /* Get the x and y positions of the image: */
-    const a = img.getBoundingClientRect();
-    /* Calculate the cursor's x and y coordinates, relative to the image: */
-    x = e.pageX - a.left;
-    y = e.pageY - a.top;
-    /* Consider any page scrolling: */
-    x = x - window.pageXOffset;
-    y = y - window.pageYOffset;
+    const a = this.img.getBoundingClientRect();
+    /**
+     * Calculate the cursor's x and y coordinates,
+     * relative to the image and Consider any page scrolling
+     */
+    const x = e.pageX - a.left - window.pageXOffset;
+    const y = e.pageY - a.top - window.pageYOffset;
     return { x, y };
   }
 
   /* Move the lens in x and y coordinates */
   _moveLens(x, y) {
-    const { img, lens, result, cx, cy } = this;
+    const { x: xMax, y: yMax } = this.max;
+    const [xMin, yMin] = [0, 0];
+
     /* Prevent the lens from being positioned outside the image: */
-    if (x > img.width - lens.offsetWidth) {
-      x = img.width - lens.offsetWidth;
+    if (x > xMax) {
+      x = xMax;
     }
+
     if (x < 0) {
       x = 0;
     }
-    if (y > img.height - lens.offsetHeight) {
-      y = img.height - lens.offsetHeight;
+
+    if (y > yMax) {
+      y = yMax;
     }
+
     if (y < 0) {
       y = 0;
     }
