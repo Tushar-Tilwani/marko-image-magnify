@@ -68,10 +68,7 @@ class {
       cy: result.offsetHeight / lens.offsetHeight,
     };
 
-    this.max = {
-      x: img.width - lens.offsetWidth,
-      y: img.height - lens.offsetHeight,
-    };
+    this.max = [img.width - lens.offsetWidth, img.height - lens.offsetHeight];
   }
 
   mouseEvent(e) {
@@ -84,10 +81,11 @@ class {
     const x = curPosition.x - lens.offsetWidth / 2;
     const y = curPosition.y - lens.offsetHeight / 2;
 
-    /* Prevent any other actions that may occur when moving over the image */
-    e.preventDefault();
     lens.focus();
     this._moveLens(x, y);
+
+    /* Prevent any other actions that may occur when moving over the image */
+    e.preventDefault();
   }
 
   keyDown(e) {
@@ -130,7 +128,7 @@ class {
 
   /* Move the lens in x and y coordinates */
   _moveLens(x, y) {
-    const { x: xMax, y: yMax } = this.max;
+    const [xMax, yMax] = this.max;
     const [xMin, yMin] = [0, 0];
 
     /* Prevent the lens from being positioned outside the image: */
