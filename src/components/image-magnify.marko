@@ -1,25 +1,18 @@
-$ {
-  const {
-    pos: { x, y },
-    ratio: { cx, cy },
-  } = state;
-}
-
+$ const {
+  pos: { x, y },
+  ratio: { cx, cy }
+} = state;
 <div.image-magnify>
-  <div.image--container
-    tabindex="0"
-    key="imageContainer"
-    on-mouseenter("mouseEvent")
-    on-mousemove("mouseEvent")
-    on-keydown("keyDown")
-  >
+  <div.image--container tabindex="0" key="imageContainer" on-mouseenter("mouseEvent") on-mousemove("mouseEvent") on-keydown("keyDown")>
     <div.imagezoom--lens
-      tabindex="0"
+      tabindex="1"
       role="group"
       aria-roledescription="image zoom"
       key="lens"
-      style={ left: `${x}px`, top: `${y}px` }
-    >
+      style={
+        left: `${x}px`,
+        top: `${y}px`
+      }>
       <div.arrow--container>
         <span.arrow.arrow--right/>
         <span.arrow.arrow--down/>
@@ -27,22 +20,15 @@ $ {
         <span.arrow.arrow--up/>
       </div>
     </div>
-    <img#image
-      src="https://i.ebayimg.com/images/g/Rj8AAOSwmRNj2Y1~/s-l500.jpg"
-      width="300"
-      height="240"
-      alt="side view of a reebok brand shoe"
-      key="image"
-    >
+    <img#image src="https://i.ebayimg.com/images/g/Rj8AAOSwmRNj2Y1~/s-l500.jpg" width="300" height="240" alt="side view of a reebok brand shoe" key="image"/>
   </div>
-  <div.imagezoom--result#result
+  <div#result.imagezoom--result
     key="result"
     style={
       backgroundImage: `url("https://i.ebayimg.com/images/g/Rj8AAOSwmRNj2Y1~/s-l500.jpg")`,
       backgroundPosition: `-${x * cx}px -${y * cy}px`,
-      backgroundSize: `${300 * cx}px ${240 * cy}px`,
-    }
-  />
+      backgroundSize: `${300 * cx}px ${240 * cy}px`
+    }/>
 </div>
 class {
   onCreate() {
@@ -65,7 +51,7 @@ class {
 
     this.state.ratio = {
       cx: result.offsetWidth / lens.offsetWidth,
-      cy: result.offsetHeight / lens.offsetHeight,
+      cy: result.offsetHeight / lens.offsetHeight
     };
 
     this.max = [img.width - lens.offsetWidth, img.height - lens.offsetHeight];
@@ -93,7 +79,6 @@ class {
       return true;
     }
     const MOVE_PX_DEFAULT = 25;
-    const { lens } = this;
     let { x: left, y: top } = this.state.pos;
     switch (e.keyCode) {
       case 37: //left arrow key
@@ -142,6 +127,7 @@ class {
     this.state.pos = { x, y };
   }
 }
+
 style {
   .image-magnify {
     display: flex;
@@ -161,17 +147,18 @@ style {
     width: 100px;
     height: 100px;
     cursor: crosshair;
-    transition: opacity 0.2s ease-in 0s;
   }
 
-  .imagezoom--lens,
-  .imagezoom--result {
-    transition: opacity 0.2s ease-in 0s;
-  }
   .image--container:hover .imagezoom--lens,
   .image--container:hover + .imagezoom--result {
     opacity: 1;
-    transition-duration: 0.3s;
+    transition: opacity 0.3s ease-in 0s;
+  }
+
+  .image--container:focus .imagezoom--lens,
+  .image--container:focus + .imagezoom--result {
+    opacity: 1;
+    transition: opacity 0.3s ease-in 0s;
   }
 
   .imagezoom--result {
